@@ -2923,6 +2923,7 @@ static void demux_copy(struct demuxer *dst, struct demuxer *src)
     dst->stream_origin = src->stream_origin;
     dst->priv = src->priv;
     dst->metadata = mp_tags_dup(dst, src->metadata);
+    dst->vfps = src->vfps;
 }
 
 // Update metadata after initialization. If sh==NULL, it's global metadata,

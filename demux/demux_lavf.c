@@ -704,6 +704,8 @@ static void handle_new_stream(demuxer_t *demuxer, int i)
             sh->codec->fps = av_q2d(st->avg_frame_rate);
         if (priv->format_hack.image_format)
             sh->codec->fps = priv->mf_fps;
+
+        demuxer->vfps = sh->codec->fps;
         sh->codec->par_w = st->sample_aspect_ratio.num;
         sh->codec->par_h = st->sample_aspect_ratio.den;
 

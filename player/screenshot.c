@@ -217,7 +217,7 @@ static char *create_fname(struct MPContext *mpctx, char *template,
                 goto error_exit;
             template++;
             char fmtstr[] = {'%', tfmt, '\0'};
-            char *s = mp_format_time_fmt(fmtstr, get_playback_time(mpctx));
+            char *s = mp_format_time_fmt(fmtstr, get_playback_time(mpctx), 0);
             if (!s)
                 goto error_exit;
             append_filename(&res, s);

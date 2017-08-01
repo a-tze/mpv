@@ -41,7 +41,7 @@
 // %s: total seconds (includes hours and minutes)
 // %f: like %s, but as float
 // %T: milliseconds (000-999)
-char *mp_format_time_fmt(const char *fmt, double time)
+char *mp_format_time_fmt(const char *fmt, double time, int fps)
 {
     if (time == MP_NOPTS_VALUE)
         return talloc_strdup(NULL, "unknown");
@@ -49,6 +49,7 @@ char *mp_format_time_fmt(const char *fmt, double time)
     time = time < 0 ? -time : time;
     long long int itime = time;
     long long int h, m, tm, s;
+    int frame;
     int ms = lrint((time - itime) * 1000);
     if (ms >= 1000) {
         ms -= 1000;
@@ -60,6 +61,15 @@ char *mp_format_time_fmt(const char *fmt, double time)
     s -= h * 3600;
     m = s / 60;
     s -= m * 60;
+    if (fps == 0) {
+        frame = 0;
+    } else if (fps == 25) {
+        frame = ms / 40;
+    } else if (fps == 50) {
+        frame = ms / 20;
+    } else {
+        frame = (ms * fps) / 1000;
+    }
     char *res = talloc_strdup(NULL, "");
     while (*fmt) {
         if (fmt[0] == '%') {
@@ -73,6 +83,7 @@ char *mp_format_time_fmt(const char *fmt, double time)
             case 'S': appendf(&res, "%02lld", s); break;
             case 'T': appendf(&res, "%03d", ms); break;
             case 'f': appendf(&res, "%f", time); break;
+            case 'F': appendf(&res, "%02d", frame); break;
             case '%': appendf(&res, "%s", "%"); break;
             default: goto error;
             }
@@ -88,9 +99,14 @@ error:
     return NULL;
 }
 
+char *mp_format_time_fps(double time, int fps)
+{
+    return mp_format_time_fmt("%H:%M:%S:%F", time, fps);
+}
+
 char *mp_format_time(double time, bool fractions)
 {
-    return mp_format_time_fmt(fractions ? "%H:%M:%S.%T" : "%H:%M:%S", time);
+    return mp_format_time_fmt(fractions ? "%H:%M:%S.%T" : "%H:%M:%S", time, 0);
 }
 
 // Set rc to the union of rc and rc2

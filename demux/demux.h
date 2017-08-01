@@ -218,6 +218,10 @@ typedef struct demuxer {
 
     struct matroska_data matroska_data;
 
+    // FPS value of video stream, but might be wrong.
+    // Only for unimportant stuff like timecode calculation
+    float vfps;
+
     // If the file is a playlist file
     struct playlist *playlist;
 

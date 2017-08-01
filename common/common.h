@@ -73,7 +73,8 @@ extern const char mpv_builddate[];
 extern const char mpv_copyright[];
 
 char *mp_format_time(double time, bool fractions);
-char *mp_format_time_fmt(const char *fmt, double time);
+char *mp_format_time_fps(double time, int fps);
+char *mp_format_time_fmt(const char *fmt, double time, int fps);
 
 struct mp_rect {
     int x0, y0;
