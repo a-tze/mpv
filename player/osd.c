@@ -47,12 +47,20 @@
 
 #define saddf(var, ...) (*(var) = talloc_asprintf_append((*var), __VA_ARGS__))
 
-// append time in the hh:mm:ss format (plus fractions if wanted)
-static void sadd_hhmmssff(char **buf, double time, bool fractions)
+// append time in the hh:mm:ss format (plus fractions or frames)
+static void sadd_hhmmssff(char **buf, double time, bool fractions, double fps)
 {
-    char *s = mp_format_time(time, fractions);
+    char *s = fractions ? mp_format_time(time, true) : mp_format_time_fps(time, round(fps));
     *buf = talloc_strdup_append(*buf, s);
     talloc_free(s);
+}
+
+// If time unknown (MP_NOPTS_VALUE), use 0 instead.
+static void sadd_hhmmssff_u(char **buf, double time, bool fractions, double fps)
+{
+    if (time == MP_NOPTS_VALUE)
+        time = 0;
+    sadd_hhmmssff(buf, time, fractions, fps);
 }
 
 static void sadd_percentage(char **buf, int percent) {
@@ -181,11 +189,14 @@ static char *get_term_status_msg(struct MPContext *mpctx)
     saddf(&line, ": ");
 
     // Playback position
-    sadd_hhmmssff(&line, get_playback_time(mpctx), opts->osd_fractions);
-    saddf(&line, " / ");
-    sadd_hhmmssff(&line, get_time_length(mpctx), opts->osd_fractions);
+    sadd_hhmmssff_u(&line, get_playback_time(mpctx) + mpctx->opts->osd_playtime_offset, mpctx->opts->osd_fractions, mpctx->demuxer->vfps);
+    double len = get_time_length(mpctx);
+    if (len >= 0) {
+        saddf(&line, " / ");
+        sadd_hhmmssff(&line, len + mpctx->opts->osd_playtime_offset, mpctx->opts->osd_fractions, mpctx->demuxer->vfps);
+    }
 
-    sadd_percentage(&line, get_percent_pos(mpctx));
+    //sadd_percentage(&line, get_percent_pos(mpctx));
 
     // other
     if (opts->playback_speed != 1)
@@ -433,10 +444,13 @@ static void sadd_osd_status(char **buffer, struct MPContext *mpctx, int level)
             *buffer = talloc_strdup_append(*buffer, text);
             talloc_free(text);
         } else {
-            sadd_hhmmssff(buffer, get_playback_time(mpctx), fractions);
+            sadd_hhmmssff_u(buffer, get_playback_time(mpctx) + mpctx->opts->osd_playtime_offset, fractions, mpctx->demuxer->vfps);
             if (level == 3) {
-                saddf(buffer, " / ");
-                sadd_hhmmssff(buffer, get_time_length(mpctx), fractions);
+                double len = get_time_length(mpctx);
+                if (len >= 0) {
+                    saddf(buffer, " / ");
+                    sadd_hhmmssff(buffer, len + mpctx->opts->osd_playtime_offset, fractions, mpctx->demuxer->vfps);
+                }
                 sadd_percentage(buffer, get_percent_pos(mpctx));
             }
         }

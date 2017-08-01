@@ -344,6 +344,8 @@ typedef struct MPOpts {
     struct sws_opts *sws_opts;
     struct zimg_opts *zimg_opts;
 
+    double osd_playtime_offset;
+
     int cuda_device;
 } MPOpts;
 

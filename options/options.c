@@ -720,6 +720,9 @@ static const m_option_t mp_opts[] = {
     OPT_SUBSTRUCT("", demux_cache_opts, demux_cache_conf, 0),
     OPT_SUBSTRUCT("", stream_opts, stream_conf, 0),
 
+    OPT_DOUBLE("osd_playtime_offset", osd_playtime_offset,
+               M_OPT_MIN | M_OPT_MAX, .min = 0, .max = 86410),
+
     OPT_SUBSTRUCT("", gl_video_opts, gl_video_conf, 0),
     OPT_SUBSTRUCT("", spirv_opts, spirv_conf, 0),
 
@@ -983,6 +986,7 @@ static const struct MPOpts mp_default_opts = {
     .index_mode = 1,
 
     .mf_fps = 1.0,
+    .osd_playtime_offset = 0.0,
 
     .display_tags = (char **)(const char*[]){
         "Artist", "Album", "Album_Artist", "Comment", "Composer",
