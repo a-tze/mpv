@@ -189,13 +189,14 @@ static char *get_term_status_msg(struct MPContext *mpctx)
     saddf(&line, ": ");
 
     // Playback position
-    sadd_hhmmssff_u(&line, get_playback_time(mpctx) + mpctx->opts->osd_playtime_offset, mpctx->opts->osd_fractions, mpctx->demuxer->vfps);
+    sadd_hhmmssff_u(&line, get_playback_time_wrapped(mpctx), mpctx->opts->osd_fractions, mpctx->demuxer->vfps);
+	/*
     double len = get_time_length(mpctx);
     if (len >= 0) {
         saddf(&line, " / ");
         sadd_hhmmssff(&line, len + mpctx->opts->osd_playtime_offset, mpctx->opts->osd_fractions, mpctx->demuxer->vfps);
     }
-
+    */
     //sadd_percentage(&line, get_percent_pos(mpctx));
 
     // other
@@ -434,7 +435,6 @@ static void sadd_osd_status(char **buffer, struct MPContext *mpctx, int level)
         *buffer = talloc_strdup_append(*buffer, text);
         talloc_free(text);
     } else if (level >= 2) {
-        bool fractions = mpctx->opts->osd_fractions;
         char sym[10];
         get_current_osd_sym(mpctx, sym, sizeof(sym));
         saddf(buffer, "%s ", sym);
@@ -444,8 +444,10 @@ static void sadd_osd_status(char **buffer, struct MPContext *mpctx, int level)
             *buffer = talloc_strdup_append(*buffer, text);
             talloc_free(text);
         } else {
-            sadd_hhmmssff_u(buffer, get_playback_time(mpctx) + mpctx->opts->osd_playtime_offset, fractions, mpctx->demuxer->vfps);
-            if (level == 3) {
+			bool fractions = mpctx->opts->osd_fractions;
+			float fps = (mpctx->demuxer) ? mpctx->demuxer->vfps : 0;
+            sadd_hhmmssff_u(buffer, get_playback_time_wrapped(mpctx), fractions, fps);
+            if (0 && level == 3) {
                 double len = get_time_length(mpctx);
                 if (len >= 0) {
                     saddf(buffer, " / ");

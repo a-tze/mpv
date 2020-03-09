@@ -538,6 +538,27 @@ double get_playback_time(struct MPContext *mpctx)
     return cur;
 }
 
+double get_playback_time_wrapped(struct MPContext *mpctx)
+{
+    double cur = get_current_time(mpctx);
+    if (cur == MP_NOPTS_VALUE)
+        return cur;
+    // During seeking, the time corresponds to the last seek time - apply some
+    // cosmetics to it.
+    if (mpctx->playback_pts == MP_NOPTS_VALUE) {
+        double length = get_time_length(mpctx);
+        if (length >= 0)
+            cur = MPCLAMP(cur, 0, length);
+    }
+	double offset = (mpctx->opts) ? mpctx->opts->osd_playtime_offset : 0;
+	cur += offset;
+	
+	/* wrap around at 24hrs */
+	if (cur >= (24 * 3600 * 1))
+        cur -= (24 * 3600 * 1);
+
+    return cur;
+}
 // Return playback position in 0.0-1.0 ratio, or -1 if unknown.
 double get_current_pos_ratio(struct MPContext *mpctx, bool use_range)
 {

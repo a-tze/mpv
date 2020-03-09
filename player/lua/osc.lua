@@ -1980,7 +1980,7 @@ function osc_init()
         if (state.tc_ms) then
             return (mp.get_property_osd("playback-time/full"))
         else
-            return (mp.get_property_osd("playback-time"))
+            return (mp.get_property_osd("playback-time-wrapped"))
         end
     end
     ne.eventresponder["mbtn_left_up"] = function ()
