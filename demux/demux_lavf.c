@@ -50,6 +50,8 @@
 #include "options/m_option.h"
 #include "options/path.h"
 
+#include "osdep/timer.h"
+
 #ifndef AV_DISPOSITION_TIMED_THUMBNAILS
 #define AV_DISPOSITION_TIMED_THUMBNAILS 0
 #endif
@@ -60,6 +62,7 @@
 #define INITIAL_PROBE_SIZE STREAM_BUFFER_SIZE
 #define PROBE_BUF_SIZE (10 * 1024 * 1024)
 
+#define DEMUXER_LENGTH_REFRESH_TIME 5
 
 // Should correspond to IO_BUFFER_SIZE in libavformat/aviobuf.c (not public)
 // libavformat (almost) always reads data in blocks of this size.
@@ -230,6 +233,7 @@ typedef struct lavf_priv {
 
     struct demux_lavf_opts *opts;
     double mf_fps;
+	double last_duration_check;
 
     bool pcm_seek_hack_disabled;
     AVStream *pcm_seek_hack;
@@ -1131,7 +1135,7 @@ static bool demux_lavf_read_packet(struct demuxer *demux,
         if (r == AVERROR(EAGAIN))
             return true;
         if (r == AVERROR_EOF)
-            return false;
+            return true;
         MP_WARN(demux, "error reading packet: %s.\n", av_err2str(r));
         return false;
     }
