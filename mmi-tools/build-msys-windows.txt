@@ -1,0 +1,52 @@
+Versionen
+
+    mpv
+        Basis ist Release 0.32 von upstream (Github) Commit 70b9917
+        darauf aufbauend Branch mmi-master-0.32 im Gitlab https://git.mmi-media.de/deltatre/mpv-player
+    ffmpeg / libav* für mpv
+        ffmpeg version: n4.2.2-1-g19bfd72126
+        muss auch erst kompiliert werden, s.u.
+    MSYS2
+        keine genaue Version ermittelbar, Rolling Release Distribution
+        ca. März 2020
+
+Build-Umgebung
+
+    Windows 10 x64
+    MSYS2 / MinGW64 von msys2.org installieren
+
+Zur erstmaligen Vorbereitung (in MSYS2-mingw64-Shell!):
+
+pacman -S make diffutils yasm git python mingw-w64-x86_64-{pkg-config,gcc,binutils,libjpeg-turbo,lua51,libass} cmake
+cp /mingw64/bin/ar.exe /mingw64/bin/x86_64-w64-mingw32-ar.exe
+cp /mingw64/bin/dlltool.exe /mingw64/bin/x86_64-w64-mingw32-dlltool.exe
+cp /mingw64/bin/nm.exe /mingw64/bin/x86_64-w64-mingw32-nm.exe
+cp /mingw64/bin/ranlib.exe /mingw64/bin/x86_64-w64-mingw32-ranlib.exe
+cp /mingw64/bin/strip.exe /mingw64/bin/x86_64-w64-mingw32-strip.exe
+cp /mingw64/bin/windres.exe /mingw64/bin/x86_64-w64-mingw32-windres.exe
+
+FFmpeg kompilieren
+
+Anschließend das FFmpeg-Repo von Github  ( https://github.com/FFmpeg/FFmpeg/ ) in ein Verzeichnis klonen, das gewünschte Release auschecken (z.B. n4.2.2 , siehe oben). Dort dann:
+
+/configure --arch=x86 --target-os=mingw32 --cross-prefix=x86_64-w64-mingw32- --prefix=/mingw64/ --enable-pthreads --disable-w32threads --disable-doc --enable-runtime-cpudetect --enable-gpl --enable-version3 --enable-postproc --enable-avresample --disable-debug --disable-avdevice --enable-static --disable-shared --disable-muxers --disable-encoders
+make -j 4
+make install
+for i in `find -name "*.pc"|grep ^..l` ; do cp $i /mingw64/lib/pkgconfig/ ; done
+
+
+Player kompilieren
+
+Explizit die MSYS2-mingw64-Shell starten!
+
+Dann im mpv-Source-Verzeichnis:
+
+./bootstrap.py
+/usr/bin/python3 waf configure CC=gcc.exe --check-c-compiler=gcc --prefix=$MSYSTEM_PREFIX --disable-libavdevice --disable-libbluray
+/usr/bin/python3 waf clean
+/usr/bin/python3 waf build
+mkdir -p DIST
+cp build/mpv.* DIST/
+for i in `ldd DIST/mpv.exe | grep -o /mingw.*\ ` ; do cp $i DIST/ ; done
+
+Dann liegt der fertige Player mit allen DLLs im Verzeichnis DIST.
